@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0A0E17">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>JARVIS — Autonomous AI Assistant</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" type="image/png" href="/static/icon-192.png">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -310,11 +316,29 @@
 
     <header>
         <div class="logo">J.A.R.V.I.S.</div>
-        <div class="status-badge" id="connStatus">
-            <span class="status-indicator" id="statusDot"></span>
-            <span id="statusText">CONNECTING...</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button onclick="document.getElementById('qrModal').style.display='flex'" style="background: rgba(0,229,255,0.15); border: 1px solid var(--cyan); color: var(--cyan); padding: 6px 12px; font-size: 11px;">📱 CONNECT PHONE</button>
+            <div class="status-badge" id="connStatus">
+                <span class="status-indicator" id="statusDot"></span>
+                <span id="statusText">CONNECTING...</span>
+            </div>
         </div>
     </header>
+
+    <!-- Connect Phone QR Modal -->
+    <div id="qrModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:var(--surface); border:1px solid var(--cyan); border-radius:12px; padding:24px; text-align:center; max-width:360px; box-shadow:0 0 30px var(--cyan-glow);">
+            <h3 style="font-family:'Orbitron', monospace; color:var(--cyan); margin-bottom:12px; letter-spacing:2px;">CONNECT MOBILE</h3>
+            <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Scan with your phone camera to launch JARVIS instantly over Wi-Fi:</p>
+            <div style="background:white; padding:12px; border-radius:8px; display:inline-block; margin-bottom:16px;">
+                <img src="/static/qr_code.png" alt="Scan QR" style="width:200px; height:200px; display:block;">
+            </div>
+            <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--cyan); background:rgba(0,229,255,0.1); padding:8px; border-radius:6px; margin-bottom:16px; word-break:break-all;">
+                http://192.168.0.107:8000
+            </div>
+            <button onclick="document.getElementById('qrModal').style.display='none'" style="width:100%; padding:10px; font-size:12px;">CLOSE</button>
+        </div>
+    </div>
 
     <div class="main-container">
         <!-- Left Panel: Multi-Device Mesh & System Status -->
@@ -548,6 +572,27 @@
             orb.addEventListener('click', () => userInput.focus());
             micBtn.addEventListener('click', () => userInput.focus());
         }
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js').catch(err => console.log('SW reg error:', err));
+            });
+        }
+
+        // PWA Install prompt handling
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.createElement('button');
+            installBtn.innerText = "📲 INSTALL APP";
+            installBtn.style.cssText = "background: var(--amber); color: #000; font-size: 11px; padding: 6px 12px; margin-left: 10px;";
+            installBtn.addEventListener('click', () => {
+                installBtn.remove();
+                deferredPrompt.prompt();
+            });
+            document.querySelector('header').appendChild(installBtn);
+        });
 
         connectWebSocket();
     </script>
