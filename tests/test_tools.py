@@ -26,6 +26,8 @@ TEST_WORKSPACE = "./test_scratch_workspace"
 
 @pytest.fixture(autouse=True)
 def setup_workspace():
+    if os.path.exists(TEST_WORKSPACE):
+        shutil.rmtree(TEST_WORKSPACE, ignore_errors=True)
     os.makedirs(TEST_WORKSPACE, exist_ok=True)
     yield
     if os.path.exists(TEST_WORKSPACE):
