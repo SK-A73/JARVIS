@@ -13,8 +13,8 @@ import java.util.Locale
 
 class SpeechManager(
     private val context: Context,
-    private val onSpeechRecognized: (String) -> Unit,
-    private val onListeningStateChanged: (Boolean) -> Unit
+    private val onSpeechRecognized: (String) -> Unit = {},
+    private val onListeningStateChanged: (Boolean) -> Unit = {}
 ) : TextToSpeech.OnInitListener {
 
     private var speechRecognizer: SpeechRecognizer? = null

@@ -1,4 +1,4 @@
-﻿package com.jarvis.assistant
+package com.jarvis.assistant
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -46,7 +46,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Initialize voice synthesizer
-        speechManager = SpeechManager(this)
+        speechManager = SpeechManager(
+            context = this,
+            onSpeechRecognized = { text -> viewModel.sendUserMessage(text) },
+            onListeningStateChanged = { isListening -> viewModel.toggleVoiceListening() }
+        )
         viewModel.speechCallback = { textToSpeak ->
             speechManager?.speak(textToSpeak)
         }
@@ -78,7 +82,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        speechManager?.shutdown()
+        speechManager?.destroy()
         super.onDestroy()
     }
 }
@@ -217,7 +221,7 @@ fun SettingsDialog(viewModel: JarvisViewModel, onDismiss: () -> Unit) {
                 ) {
                     Text(
                         if (isStandalone) "Autonomous Cloud (No PC Needed)" else "Gateway Mesh (Connected to PC/Cloud)",
-                        color = if (isStandalone) NeonCyan else AmberAlert,
+                        color = if (isStandalone) NeonCyan else WarningAmber,
                         fontSize = 12.sp
                     )
                     Switch(
@@ -265,7 +269,7 @@ fun SettingsDialog(viewModel: JarvisViewModel, onDismiss: () -> Unit) {
                     }
                     onDismiss()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = NeonCyan, contentColor = DarkObsidian)
+                colors = ButtonDefaults.buttonColors(containerColor = NeonCyan, contentColor = ObsidianBg)
             ) {
                 Text("SAVE")
             }
