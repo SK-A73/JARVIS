@@ -22,7 +22,7 @@ from backend.app.tools.registry import ToolRegistry
 from backend.app.agent.modes import OperatingMode
 from backend.app.models.task import AuditLog
 
-TEST_WORKSPACE = "./test_scratch_workspace"
+TEST_WORKSPACE = str(Path("./test_scratch_workspace").resolve())
 
 @pytest.fixture(autouse=True)
 def setup_workspace():
