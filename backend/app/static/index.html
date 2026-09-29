@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS — Autonomous AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --obsidian: #070B12;
+            --surface: #0F1726;
+            --surface-elevated: #162238;
+            --cyan: #00E5FF;
+            --cyan-glow: rgba(0, 229, 255, 0.4);
+            --electric-blue: #2979FF;
+            --amber: #FF9100;
+            --crimson: #FF1744;
+            --text-primary: #E0F7FA;
+            --text-muted: #607D8B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--obsidian);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 10%, rgba(0, 229, 255, 0.08) 0%, transparent 60%),
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+        }
+
+        header {
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+            background: rgba(15, 23, 38, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: var(--cyan);
+            text-shadow: 0 0 15px var(--cyan-glow);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid var(--cyan);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--cyan);
+            letter-spacing: 1px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .main-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 320px 1fr 340px;
+            gap: 20px;
+            padding: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid rgba(0, 229, 255, 0.12);
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+        }
+
+        .card-header {
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: var(--cyan);
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Center Orb HUD */
+        .hud-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .orb-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .orb {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFFFFF 0%, var(--cyan) 40%, rgba(41, 121, 255, 0.5) 75%, transparent 100%);
+            box-shadow: 0 0 45px var(--cyan-glow), inset 0 0 25px rgba(255, 255, 255, 0.8);
+            animation: pulse 2.5s infinite ease-in-out;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .orb.listening {
+            animation: listeningPulse 0.8s infinite alternate ease-in-out;
+            box-shadow: 0 0 65px var(--amber), inset 0 0 25px #FFF;
+            background: radial-gradient(circle, #FFF 0%, var(--amber) 50%, transparent 100%);
+        }
+
+        .orb-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px dashed rgba(0, 229, 255, 0.4);
+            animation: rotateRing 15s linear infinite;
+        }
+
+        .orb-ring-1 { width: 180px; height: 180px; border-style: solid; border-width: 2px; border-color: rgba(0, 229, 255, 0.2); }
+        .orb-ring-2 { width: 215px; height: 215px; border-width: 1px; border-dasharray: 8 4; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.92); opacity: 0.85; }
+            50% { transform: scale(1.08); opacity: 1; }
+        }
+
+        @keyframes listeningPulse {
+            0% { transform: scale(1.0); }
+            100% { transform: scale(1.22); }
+        }
+
+        @keyframes rotateRing {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Conversation Log */
+        .chat-stream {
+            flex: 1;
+            width: 100%;
+            overflow-y: auto;
+            max-height: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 6px;
+            margin-bottom: 16px;
+        }
+
+        .msg-bubble {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+            max-width: 85%;
+        }
+
+        .msg-user {
+            align-self: flex-end;
+            background: rgba(41, 121, 255, 0.2);
+            border: 1px solid rgba(41, 121, 255, 0.4);
+            color: #FFF;
+        }
+
+        .msg-jarvis {
+            align-self: flex-start;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            color: var(--text-primary);
+        }
+
+        .input-bar {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: var(--surface-elevated);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #FFF;
+            font-family: inherit;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        button {
+            background: var(--cyan);
+            color: var(--obsidian);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            box-shadow: 0 0 15px var(--cyan-glow);
+            transform: translateY(-1px);
+        }
+
+        /* Items List */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            max-height: 520px;
+        }
+
+        .item-row {
+            background: var(--surface-elevated);
+            border-radius: 6px;
+            padding: 10px;
+            border-left: 3px solid var(--cyan);
+            font-size: 13px;
+        }
+
+        .item-title {
+            font-weight: 700;
+            color: #FFF;
+            margin-bottom: 2px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .item-desc {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .main-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">J.A.R.V.I.S.</div>
+        <div class="status-badge" id="connStatus">
+            <span class="status-indicator" id="statusDot"></span>
+            <span id="statusText">CONNECTING...</span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Left Panel: Multi-Device Mesh & System Status -->
+        <div class="card">
+            <div class="card-header">
+                <span>DEVICE MESH</span>
+                <span>NODES (3)</span>
+            </div>
+            <div class="item-list">
+                <div class="item-row" style="border-left-color: var(--cyan);">
+                    <div class="item-title">
+                        <span>Android Phone Client</span>
+                        <span style="color: var(--cyan);">● ONLINE</span>
+                    </div>
+                    <div class="item-desc">Voice I/O • Notifications • Home Widget</div>
+                </div>
+                <div class="item-row" style="border-left-color: var(--electric-blue);">
+                    <div class="item-title">
+                        <span>Windows Laptop Node</span>
+                        <span style="color: var(--cyan);">● ONLINE</span>
+                    </div>
+                    <div class="item-desc">Terminal • Filesystem • Build Tools</div>
+                </div>
+                <div class="item-row" style="border-left-color: var(--amber);">
+                    <div class="item-title">
+                        <span>24/7 Gateway Server</span>
+                        <span style="color: var(--cyan);">● ACTIVE</span>
+                    </div>
+                    <div class="item-desc">Core Brain • Multilayer Memory • Worker</div>
+                </div>
+            </div>
+
+            <div class="card-header" style="margin-top: 24px;">
+                <span>ACTIVE OPERATING MODE</span>
+            </div>
+            <div style="background: rgba(0, 229, 255, 0.08); padding: 12px; border-radius: 8px; border: 1px dashed var(--cyan);">
+                <div style="font-weight: 700; color: var(--cyan); font-family: 'Orbitron'; font-size: 14px;">AUTONOMOUS MODE</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Self-governing Plan &rarr; Implement &rarr; Test &rarr; Rectify loop with safety confirmation.</div>
+            </div>
+        </div>
+
+        <!-- Center Panel: Holographic HUD Orb & Live Streaming Conversation -->
+        <div class="card hud-center">
+            <div class="card-header" style="width: 100%;">
+                <span>HOLOGRAPHIC CORE HUD</span>
+                <span id="emotionBadge" style="color: var(--amber);">EMOTION: CALM</span>
+            </div>
+
+            <div class="orb-wrapper">
+                <div class="orb-ring orb-ring-1"></div>
+                <div class="orb-ring orb-ring-2"></div>
+                <div class="orb" id="jarvisOrb" title="Click to Speak"></div>
+            </div>
+
+            <div id="orbCaption" style="font-size: 13px; color: var(--cyan); letter-spacing: 1px; font-weight: 600; margin-bottom: 12px;">TAP ORB TO SPEAK</div>
+
+            <div class="chat-stream" id="chatStream">
+                <div class="msg-bubble msg-jarvis">
+                    <strong>JARVIS:</strong> Greetings. All systems are operational. I am ready to assist across your phone and laptop.
+                </div>
+            </div>
+
+            <div class="input-bar">
+                <input type="text" id="userInput" placeholder="Ask JARVIS, give a command, or request code...">
+                <button id="sendBtn">SEND</button>
+                <button id="micBtn" style="background: var(--surface-elevated); color: var(--cyan); border: 1px solid var(--cyan);">🎙</button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Tasks Center & Memory Vault -->
+        <div class="card">
+            <div class="card-header">
+                <span>TASKS CENTER</span>
+                <span>24/7 QUEUE</span>
+            </div>
+            <div class="item-list" id="tasksList">
+                <div class="item-row">
+                    <div class="item-title">
+                        <span>Autonomous System Engine</span>
+                        <span style="color: var(--cyan);">COMPLETED</span>
+                    </div>
+                    <div class="item-desc">34/34 Test Suites Passing • Core Online</div>
+                </div>
+            </div>
+
+            <div class="card-header" style="margin-top: 24px;">
+                <span>MEMORY VAULT</span>
+                <span style="color: var(--cyan); font-size: 11px;">SEMANTIC RETRIEVER</span>
+            </div>
+            <div class="item-list" id="memoryList">
+                <div class="item-row" style="border-left-color: var(--amber);">
+                    <div class="item-title">
+                        <span>Database Architecture</span>
+                        <span style="color: var(--amber);">PROJECT</span>
+                    </div>
+                    <div class="item-desc">User preference: PostgreSQL / SQLite hybrid</div>
+                </div>
+                <div class="item-row" style="border-left-color: var(--cyan);">
+                    <div class="item-title">
+                        <span>Autonomous Safety Policy</span>
+                        <span style="color: var(--cyan);">LONG-TERM</span>
+                    </div>
+                    <div class="item-desc">Destructive commands require explicit approval</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/client/web_hud_${Math.floor(Math.random()*1000)}`;
+
+        let ws;
+        const orb = document.getElementById('jarvisOrb');
+        const orbCaption = document.getElementById('orbCaption');
+        const chatStream = document.getElementById('chatStream');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const micBtn = document.getElementById('micBtn');
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+        const emotionBadge = document.getElementById('emotionBadge');
+
+        function connectWebSocket() {
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                statusText.innerText = "ONLINE";
+                statusDot.style.background = "var(--cyan)";
+                statusDot.style.boxShadow = "0 0 10px var(--cyan)";
+            };
+
+            ws.onclose = () => {
+                statusText.innerText = "RECONNECTING...";
+                statusDot.style.background = "var(--crimson)";
+                statusDot.style.boxShadow = "0 0 10px var(--crimson)";
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            ws.onerror = () => {
+                ws.close();
+            };
+
+            let currentBubble = null;
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'stream_start') {
+                    orb.classList.add('listening');
+                    orbCaption.innerText = "JARVIS IS RESPONDING";
+                    emotionBadge.innerText = `EMOTION: ${data.inferred_emotion.toUpperCase()}`;
+
+                    currentBubble = document.createElement('div');
+                    currentBubble.className = 'msg-bubble msg-jarvis';
+                    currentBubble.innerHTML = '<strong>JARVIS:</strong> ';
+                    chatStream.appendChild(currentBubble);
+                    chatStream.scrollTop = chatStream.scrollHeight;
+                } else if (data.type === 'stream_chunk') {
+                    if (currentBubble) {
+                        currentBubble.innerHTML += data.chunk;
+                        chatStream.scrollTop = chatStream.scrollHeight;
+                    }
+                } else if (data.type === 'stream_end') {
+                    orb.classList.remove('listening');
+                    orbCaption.innerText = "STANDBY • TAP ORB TO SPEAK";
+                    // TTS Audio response if speech synthesis available
+                    if (window.speechSynthesis && data.full_text) {
+                        const utter = new SpeechSynthesisUtterance(data.full_text);
+                        window.speechSynthesis.speak(utter);
+                    }
+                } else if (data.type === 'chat_response') {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'msg-bubble msg-jarvis';
+                    bubble.innerHTML = `<strong>JARVIS:</strong> ${data.content}`;
+                    chatStream.appendChild(bubble);
+                    chatStream.scrollTop = chatStream.scrollHeight;
+                }
+            };
+        }
+
+        function sendMsg() {
+            const text = userInput.value.trim();
+            if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble msg-user';
+            bubble.innerHTML = `<strong>You:</strong> ${text}`;
+            chatStream.appendChild(bubble);
+            chatStream.scrollTop = chatStream.scrollHeight;
+
+            ws.send(JSON.stringify({ message: text }));
+            userInput.value = '';
+        }
+
+        sendBtn.addEventListener('click', sendMsg);
+        userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMsg(); });
+
+        // Speech Recognition (Barge-in Voice capability)
+        let recognition;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRec();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                orb.classList.add('listening');
+                orbCaption.innerText = "LISTENING TO YOU...";
+                if (window.speechSynthesis) window.speechSynthesis.cancel(); // Barge-in interrupt
+            };
+
+            recognition.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                userInput.value = transcript;
+                sendMsg();
+            };
+
+            recognition.onend = () => {
+                orb.classList.remove('listening');
+                orbCaption.innerText = "STANDBY • TAP ORB TO SPEAK";
+            };
+
+            orb.addEventListener('click', () => {
+                try { recognition.start(); } catch(err) { recognition.stop(); }
+            });
+            micBtn.addEventListener('click', () => {
+                try { recognition.start(); } catch(err) { recognition.stop(); }
+            });
+        } else {
+            orb.addEventListener('click', () => userInput.focus());
+            micBtn.addEventListener('click', () => userInput.focus());
+        }
+
+        connectWebSocket();
+    </script>
+</body>
+</html>

@@ -37,6 +37,12 @@ def test_health_check_endpoint():
     assert data["status"] == "healthy"
     assert "JARVIS" in data["service"]
 
+    # Verify Web Dashboard is served at root
+    root_resp = client.get("/")
+    assert root_resp.status_code == 200
+    assert "text/html" in root_resp.headers.get("content-type", "")
+    assert "J.A.R.V.I.S." in root_resp.text
+
 def test_full_user_and_task_e2e_flow():
     client = TestClient(app)
 

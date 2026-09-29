@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">JARVIS</string>
+    <string name="channel_voice_service_name">JARVIS Active Session</string>
+    <string name="channel_voice_service_desc">Keeps JARVIS active for natural voice interaction</string>
+    <string name="channel_tasks_name">JARVIS Tasks &amp; Alerts</string>
+    <string name="channel_tasks_desc">Notifications for autonomous task completions and required approvals</string>
+    <string name="notification_title">JARVIS is Active</string>
+    <string name="notification_listening">Listening for your commands...</string>
+    <string name="action_stop">STOP</string>
+    <string name="widget_tap_to_speak">Tap to Activate JARVIS</string>
+    <string name="widget_status_online">ONLINE</string>
+</resources>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#DD0A0E17"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <!-- Glowing Cyan Arc / Status Indicator -->
+    <ImageView
+        android:id="@+id/widget_orb_icon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_btn_speak_now"
+        android:contentDescription="JARVIS Activation" />
+
+    <!-- Text Status Column -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="JARVIS"
+            android:textColor="#00E5FF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tap to speak"
+            android:textColor="#B0BEC5"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- 1-Tap Mic Activation Button -->
+    <ImageView
+        android:id="@+id/widget_mic_btn"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="#2200E5FF"
+        android:padding="8dp"
+        android:src="@android:drawable/ic_btn_speak_now"
+        android:contentDescription="Quick Mic" />
+
+</LinearLayout>
