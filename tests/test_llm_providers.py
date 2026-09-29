@@ -66,8 +66,8 @@ async def test_mock_provider_embeddings():
     ]
     embeddings = await provider.generate_embeddings(texts)
     assert len(embeddings) == 2
-    assert len(embeddings[0]) == 64
-    assert len(embeddings[1]) == 64
+    assert len(embeddings[0]) == 256
+    assert len(embeddings[1]) == 256
     # Check normalization: sum of squares ~ 1.0
     norm_sq = sum(x * x for x in embeddings[0])
     assert abs(norm_sq - 1.0) < 1e-4

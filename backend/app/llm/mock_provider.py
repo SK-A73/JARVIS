@@ -114,14 +114,13 @@ class MockLLMProvider(LLMProvider):
 
     async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Generates deterministic pseudo-embeddings using SHA-256 for consistent testing."""
-        dim = 64
+        dim = 256
         results = []
         for text in texts:
             vec = [0.0] * dim
-            # Generate deterministic values based on words
             words = text.lower().split()
             for word in words:
-                h = int(hashlib.md5(word.encode("utf-8")).hexdigest(), 16)
+                h = int(hashlib.sha256(word.encode("utf-8")).hexdigest(), 16)
                 idx = h % dim
                 vec[idx] += 1.0
 
