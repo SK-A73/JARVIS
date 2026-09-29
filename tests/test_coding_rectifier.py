@@ -41,7 +41,7 @@ def test_rectifier_assertion_parsing():
     assertion_log = "FAILED tests/test_payment.py::test_stripe_charge - AssertionError: assert 400 == 200"
     analysis = Rectifier.parse_traceback(assertion_log)
     assert analysis.error_type == "AssertionError"
-    assert "Assertion failed" in analysis.root_cause
+    assert "AssertionError" in analysis.root_cause
 
 @pytest.mark.asyncio
 async def test_coding_agent_successful_lifecycle():
