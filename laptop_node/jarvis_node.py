@@ -1,9 +1,12 @@
-"""
-JARVIS Laptop Node Client Daemon
-Connects to JARVIS 24/7 backend over authenticated WebSocket to provide laptop capabilities.
-"""
 import os
 import sys
+from pathlib import Path
+
+# Add project root to sys.path
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 import json
 import asyncio
 import logging
