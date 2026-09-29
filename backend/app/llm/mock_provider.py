@@ -110,7 +110,6 @@ class MockLLMProvider(LLMProvider):
         tokens = resp.content.split(" ")
         for i, token in enumerate(tokens):
             yield token + (" " if i < len(tokens) - 1 else "")
-            await asyncio.sleep(0.01)
 
     async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Generates deterministic pseudo-embeddings using SHA-256 for consistent testing."""

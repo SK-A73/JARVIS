@@ -32,7 +32,7 @@ class DeviceNode(Base):
     user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
     name = Column(String(128), nullable=False)
     device_type = Column(String(32), nullable=False)  # phone | laptop | desktop | server | smart_device
-    api_token_hash = Column(String(255), nullable=False)
+    api_token_hash = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
     is_online = Column(Boolean, default=False)
     last_seen = Column(DateTime, default=utc_now)
