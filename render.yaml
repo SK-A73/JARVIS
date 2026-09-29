@@ -1,0 +1,16 @@
+﻿services:
+  - type: web
+    name: jarvis-gateway
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: JARVIS_HOST
+        value: 0.0.0.0
+      - key: JARVIS_PORT
+        value: 8000
+      - key: ENVIRONMENT
+        value: production
+      - key: DEFAULT_LLM_PROVIDER
+        value: mock

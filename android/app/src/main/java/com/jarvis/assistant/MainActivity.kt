@@ -1,4 +1,4 @@
-package com.jarvis.assistant
+﻿package com.jarvis.assistant
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -8,16 +8,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DeveloperBoard
-import androidx.compose.material.icons.filled.Hub
-import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.jarvis.assistant.audio.SpeechManager
+import com.jarvis.assistant.data.OperatingMode
 import com.jarvis.assistant.service.JarvisVoiceService
 import com.jarvis.assistant.ui.screens.DashboardScreen
 import com.jarvis.assistant.ui.screens.DeviceMeshScreen
@@ -29,13 +31,13 @@ import com.jarvis.assistant.viewmodel.JarvisViewModel
 class MainActivity : ComponentActivity() {
 
     private val viewModel: JarvisViewModel by viewModels()
+    private var speechManager: SpeechManager? = null
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val recordAudioGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: false
         if (recordAudioGranted) {
-            // Start the persistent foreground voice service
             JarvisVoiceService.startService(this)
         }
     }
@@ -43,10 +45,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize WebSocket connection to local JARVIS gateway
-        viewModel.initConnection(serverUrl = "ws://10.0.2.2:8000")
+        // Initialize voice synthesizer
+        speechManager = SpeechManager(this)
+        viewModel.speechCallback = { textToSpeak ->
+            speechManager?.speak(textToSpeak)
+        }
 
-        // Request runtime permissions (Audio & Notifications)
         checkAndRequestPermissions()
 
         setContent {
@@ -72,13 +76,45 @@ class MainActivity : ComponentActivity() {
             JarvisVoiceService.startService(this)
         }
     }
+
+    override fun onDestroy() {
+        speechManager?.shutdown()
+        super.onDestroy()
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainAppScaffold(viewModel: JarvisViewModel) {
     var selectedTab by remember { mutableStateOf(0) }
+    var showSettingsDialog by remember { mutableStateOf(false) }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "J.A.R.V.I.S.",
+                        color = NeonCyan,
+                        fontSize = 18.sp,
+                        letterSpacing = 2.sp
+                    )
+                },
+                actions = {
+                    IconButton(onClick = { showSettingsDialog = true }) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = NeonCyan
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = DarkSurface,
+                    titleContentColor = NeonCyan
+                )
+            )
+        },
         bottomBar = {
             NavigationBar(
                 containerColor = DarkSurface,
@@ -87,7 +123,7 @@ fun MainAppScaffold(viewModel: JarvisViewModel) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Default.RecordVoiceOver, contentDescription = "Dashboard") },
+                    icon = { Icon(Icons.Default.RecordVoiceOver, contentDescription = "HUD") },
                     label = { Text("HUD", fontSize = 11.sp) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = NeonCyan,
@@ -126,7 +162,7 @@ fun MainAppScaffold(viewModel: JarvisViewModel) {
                 NavigationBarItem(
                     selected = selectedTab == 3,
                     onClick = { selectedTab = 3 },
-                    icon = { Icon(Icons.Default.Hub, contentDescription = "Devices") },
+                    icon = { Icon(Icons.Default.Hub, contentDescription = "Mesh") },
                     label = { Text("Mesh", fontSize = 11.sp) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = NeonCyan,
@@ -148,4 +184,98 @@ fun MainAppScaffold(viewModel: JarvisViewModel) {
             }
         }
     }
+
+    if (showSettingsDialog) {
+        SettingsDialog(viewModel = viewModel, onDismiss = { showSettingsDialog = false })
+    }
+}
+
+@Composable
+fun SettingsDialog(viewModel: JarvisViewModel, onDismiss: () -> Unit) {
+    val settings = viewModel.settingsManager
+
+    var apiKey by remember { mutableStateOf(settings.apiKey) }
+    var selectedProvider by remember { mutableStateOf(settings.aiProvider) }
+    var serverUrl by remember { mutableStateOf(settings.serverUrl) }
+    var isStandalone by remember { mutableStateOf(settings.operatingMode == OperatingMode.STANDALONE_CLOUD) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("JARVIS Core Settings", color = NeonCyan)
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    "Architecture Mode:",
+                    color = TextPrimary,
+                    fontSize = 13.sp
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        if (isStandalone) "Autonomous Cloud (No PC Needed)" else "Gateway Mesh (Connected to PC/Cloud)",
+                        color = if (isStandalone) NeonCyan else AmberAlert,
+                        fontSize = 12.sp
+                    )
+                    Switch(
+                        checked = isStandalone,
+                        onCheckedChange = { isStandalone = it }
+                    )
+                }
+
+                OutlinedTextField(
+                    value = apiKey,
+                    onValueChange = { apiKey = it },
+                    label = { Text("Cloud AI API Key (Groq / OpenAI)") },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = NeonCyan,
+                        unfocusedBorderColor = DarkSurfaceElevated,
+                        focusedLabelColor = NeonCyan
+                    )
+                )
+
+                if (!isStandalone) {
+                    OutlinedTextField(
+                        value = serverUrl,
+                        onValueChange = { serverUrl = it },
+                        label = { Text("Gateway Server URL") },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = NeonCyan,
+                            unfocusedBorderColor = DarkSurfaceElevated,
+                            focusedLabelColor = NeonCyan
+                        )
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    settings.apiKey = apiKey
+                    settings.aiProvider = selectedProvider
+                    settings.serverUrl = serverUrl
+                    settings.operatingMode = if (isStandalone) OperatingMode.STANDALONE_CLOUD else OperatingMode.GATEWAY_MESH
+                    if (!isStandalone) {
+                        viewModel.connectGateway(serverUrl)
+                    }
+                    onDismiss()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = NeonCyan, contentColor = DarkObsidian)
+            ) {
+                Text("SAVE")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("CANCEL", color = TextMuted)
+            }
+        },
+        containerColor = DarkSurface,
+        textContentColor = TextPrimary
+    )
 }
